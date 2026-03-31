@@ -543,5 +543,48 @@ line3
       // eslint-disable-next-line dot-notation
       expect(() => {parsePatch(patchStr);}).to.throw('Hunk at line 5 contained invalid line line3');
     });
+
+    it('should not infinite loop on patches with carriage return in filename', () => {
+      // Regression test for CVE-2026-24001
+      // Filenames containing \r, \u2028, or \u2029 could cause infinite loops
+      const patchStr = `--- old\rfile
++++ new\rfile
+@@ -1 +1 @@
+-old
++new`;
+
+      const result = parsePatch(patchStr);
+      expect(result).to.have.length(1);
+      expect(result[0].oldFileName).to.equal('old\rfile');
+      expect(result[0].newFileName).to.equal('new\rfile');
+    });
+
+    it('should not infinite loop on patches with line separator in filename', () => {
+      // Regression test for CVE-2026-24001
+      const patchStr = `--- old\u2028file
++++ new\u2028file
+@@ -1 +1 @@
+-old
++new`;
+
+      const result = parsePatch(patchStr);
+      expect(result).to.have.length(1);
+      expect(result[0].oldFileName).to.equal('old\u2028file');
+      expect(result[0].newFileName).to.equal('new\u2028file');
+    });
+
+    it('should not infinite loop on patches with paragraph separator in filename', () => {
+      // Regression test for CVE-2026-24001
+      const patchStr = `--- old\u2029file
++++ new\u2029file
+@@ -1 +1 @@
+-old
++new`;
+
+      const result = parsePatch(patchStr);
+      expect(result).to.have.length(1);
+      expect(result[0].oldFileName).to.equal('old\u2029file');
+      expect(result[0].newFileName).to.equal('new\u2029file');
+    });
   });
 });

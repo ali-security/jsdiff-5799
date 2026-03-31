@@ -50,12 +50,13 @@ export function parsePatch(uniDiff) {
   // Parses the --- and +++ headers, if none are found, no lines
   // are consumed.
   function parseFileHeader(index) {
-    const fileHeader = (/^(---|\+\+\+)\s+(.*)\r?$/).exec(diffstr[i]);
-    if (fileHeader) {
-      let keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
-      const data = fileHeader[2].split('\t', 2);
+    const fileHeaderMatch = (/^(---|\+\+\+)\s+/).exec(diffstr[i]);
+    if (fileHeaderMatch) {
+      const prefix = fileHeaderMatch[1];
+      let keyPrefix = prefix === '---' ? 'old' : 'new';
+      const data = diffstr[i].substring(3).trim().split('\t', 2);
       let fileName = data[0].replace(/\\\\/g, '\\');
-      if ((/^".*"$/).test(fileName)) {
+      if (fileName.startsWith('"') && fileName.endsWith('"')) {
         fileName = fileName.substr(1, fileName.length - 2);
       }
       index[keyPrefix + 'FileName'] = fileName;
